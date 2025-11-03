@@ -90,7 +90,7 @@ public class DatabaseManager {
     // 🔹 Safe Query Helpers (Auto-close)
     // ================================
     public <T> T querySafe(String sql, ResultProcessor<T> processor, Object... params) {
-        try (Connection conn = getConnection();
+        try (Connection conn = DriverManager.getConnection(getConnectionUrl());
              PreparedStatement ps = conn.prepareStatement(sql)) {
             setParameters(ps, params);
             try (ResultSet rs = ps.executeQuery()) {
@@ -103,7 +103,7 @@ public class DatabaseManager {
     }
 
     public int updateSafe(String sql, Object... params) {
-        try (Connection conn = getConnection();
+        try (Connection conn = DriverManager.getConnection(getConnectionUrl());
              PreparedStatement ps = conn.prepareStatement(sql)) {
             setParameters(ps, params);
             return ps.executeUpdate();
@@ -112,6 +112,15 @@ public class DatabaseManager {
             return -1;
         }
     }
+
+    private String getConnectionUrl() {
+        if (useMySQL) {
+            return "jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=false&autoReconnect=true";
+        } else {
+            return "jdbc:sqlite:" + sqliteFile.getAbsolutePath();
+        }
+    }
+
 
     // ================================
     // 🔹 Async Helpers (Folia-safe)
