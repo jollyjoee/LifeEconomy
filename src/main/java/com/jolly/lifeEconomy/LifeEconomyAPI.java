@@ -143,43 +143,6 @@ public class LifeEconomyAPI {
     }
 
     /**
-     * Gets a player's stored health value from the database asynchronously.
-     * <p>
-     * Use {@code thenAccept()} to read the result.
-     * Example:
-     * <pre>{@code
-     * api.getHealth(player).thenAccept(health -> {
-     *     player.sendMessage("You have " + health + " health!");
-     * });
-     * }</pre>
-     *
-     * @param player The player whose health to fetch.
-     * @return A CompletableFuture containing the player's health.
-     */
-
-    /*
-    public CompletableFuture<Double> getHealth(Player player) {
-        UUID uuid = player.getUniqueId();
-
-        return plugin.db.querySafeAsync(
-                "SELECT health FROM life_data WHERE uuid = ?",
-                rs -> {
-                    double stored = 20.0;
-                    if (rs.next()) {
-                        stored = rs.getDouble("health");
-                    } else {
-                        plugin.db.updateSafe(
-                                "INSERT INTO life_data (uuid, health) VALUES (?, ?)",
-                                uuid.toString(), stored
-                        );
-                    }
-                    return stored;
-                },
-                uuid.toString()
-        );
-    }*/
-
-    /**
      * Sets a player's health and updates both cache and database.
      *
      * @param player The player to update.
