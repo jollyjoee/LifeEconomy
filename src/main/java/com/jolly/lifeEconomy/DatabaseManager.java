@@ -118,12 +118,32 @@ public class DatabaseManager {
     // ================================
     // 🔹 Async Helpers (Folia-safe)
     // ================================
-    public <T> CompletableFuture<T> querySafeAsync(String sql, ResultProcessor<T> processor, Object... params) {
-        return CompletableFuture.supplyAsync(() -> querySafe(sql, processor, params));
+    public CompletableFuture<Integer> updateSafeAsync(String sql, Object... params) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (Connection conn = getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                setParameters(ps, params); // local to this async thread
+                return ps.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return -1;
+            }
+        });
     }
 
-    public CompletableFuture<Integer> updateSafeAsync(String sql, Object... params) {
-        return CompletableFuture.supplyAsync(() -> updateSafe(sql, params));
+    public <T> CompletableFuture<T> querySafeAsync(String sql, ResultProcessor<T> processor, Object... params) {
+        return CompletableFuture.supplyAsync(() -> {
+            try (Connection conn = getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                setParameters(ps, params);
+                try (ResultSet rs = ps.executeQuery()) {
+                    return processor.process(rs);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return null;
+            }
+        });
     }
 
     // ================================
