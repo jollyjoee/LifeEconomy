@@ -7,14 +7,14 @@ import java.sql.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Universal DatabaseManager for Serversentials
+ * Universal DatabaseManager for LifeEconomy
  * Supports SQLite and MySQL
- * Automatically closes resources and provides async helpers
+ * Async-safe for Folia
  */
 public class DatabaseManager {
 
     private final JavaPlugin plugin;
-    private Connection connection;
+    private Connection mysqlConnection;
 
     private final boolean useMySQL;
     private final String host, database, username, password;
@@ -42,14 +42,19 @@ public class DatabaseManager {
     // ================================
     // 🔹 Connection Handling
     // ================================
-    public Connection getConnection() throws SQLException {
-        if (connection != null && !connection.isClosed()) {
-            return connection;
-        }
 
+    /**
+     * Get a connection. For MySQL, reuse a persistent connection.
+     * For SQLite, always create a fresh connection (async safe).
+     */
+    public Connection getConnection() throws SQLException {
         if (useMySQL) {
+            if (mysqlConnection != null && !mysqlConnection.isClosed()) {
+                return mysqlConnection;
+            }
             String url = "jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=false&autoReconnect=true";
-            connection = DriverManager.getConnection(url, username, password);
+            mysqlConnection = DriverManager.getConnection(url, username, password);
+            return mysqlConnection;
         } else {
             if (!sqliteFile.exists()) {
                 try {
@@ -59,18 +64,15 @@ public class DatabaseManager {
                     e.printStackTrace();
                 }
             }
-
             String url = "jdbc:sqlite:" + sqliteFile.getAbsolutePath();
-            connection = DriverManager.getConnection(url);
+            return DriverManager.getConnection(url);
         }
-
-        return connection;
     }
 
     public void close() {
         try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
+            if (mysqlConnection != null && !mysqlConnection.isClosed()) {
+                mysqlConnection.close();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -90,7 +92,7 @@ public class DatabaseManager {
     // 🔹 Safe Query Helpers (Auto-close)
     // ================================
     public <T> T querySafe(String sql, ResultProcessor<T> processor, Object... params) {
-        try (Connection conn = DriverManager.getConnection(getConnectionUrl());
+        try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             setParameters(ps, params);
             try (ResultSet rs = ps.executeQuery()) {
@@ -103,7 +105,7 @@ public class DatabaseManager {
     }
 
     public int updateSafe(String sql, Object... params) {
-        try (Connection conn = DriverManager.getConnection(getConnectionUrl());
+        try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             setParameters(ps, params);
             return ps.executeUpdate();
@@ -112,15 +114,6 @@ public class DatabaseManager {
             return -1;
         }
     }
-
-    private String getConnectionUrl() {
-        if (useMySQL) {
-            return "jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=false&autoReconnect=true";
-        } else {
-            return "jdbc:sqlite:" + sqliteFile.getAbsolutePath();
-        }
-    }
-
 
     // ================================
     // 🔹 Async Helpers (Folia-safe)
