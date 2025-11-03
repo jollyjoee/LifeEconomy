@@ -7,9 +7,11 @@ import com.jolly.lifeEconomy.listeners.PlayerJoinListener;
 import com.jolly.lifeEconomy.listeners.PlayerLeaveListener;
 import com.jolly.lifeEconomy.listeners.PlayerRespawnListener;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.units.qual.A;
 
@@ -76,6 +78,10 @@ public final class LifeEconomy extends JavaPlugin {
     public void onDisable() {
         if (db != null) {
             db.close();
+        }
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            double health = heartCache.remove(player.getUniqueId());
+            updateDb(player.getUniqueId(), health);
         }
     }
 

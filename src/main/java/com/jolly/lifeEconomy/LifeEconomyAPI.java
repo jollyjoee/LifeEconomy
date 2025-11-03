@@ -56,34 +56,15 @@ public class LifeEconomyAPI {
      */
     public void giveHealth(Player player, double amount, boolean heal) {
         UUID uuid = player.getUniqueId();
-
-        plugin.db.querySafeAsync(
-                "SELECT health FROM life_data WHERE uuid = ?",
-                rs -> {
-                    double stored = 20.0; // Default 10 hearts
-                    if (rs.next()) {
-                        stored = rs.getDouble("health");
-                    } else {
-                        plugin.db.updateSafe(
-                                "INSERT INTO life_data (uuid, health) VALUES (?, ?)",
-                                uuid.toString(), stored
-                        );
-                    }
-
-                    double newHealth = stored + amount;
-                    plugin.updateDb(uuid, newHealth);
-
-                    if (player != null) {
-                        scheduler.runGlobal(() -> {
-                            player.setMaxHealth(newHealth);
-                            if (heal) player.setHealth(player.getMaxHealth());
-                        });
-                    }
-
-                    return null;
-                },
-                uuid.toString()
-        );
+        double oldHealth = plugin.heartCache.remove(uuid);
+        double newHealth = oldHealth + amount;
+        plugin.updateDb(uuid, newHealth);
+        if (player != null) {
+            scheduler.runGlobal(() -> {
+                player.setMaxHealth(newHealth);
+                if (heal) player.setHealth(player.getMaxHealth());
+            });
+        }
     }
 
     /**
@@ -94,41 +75,20 @@ public class LifeEconomyAPI {
      */
     public void takeHealth(Player player, double amount) {
         UUID uuid = player.getUniqueId();
-
-        plugin.db.querySafeAsync(
-                "SELECT health FROM life_data WHERE uuid = ?",
-                rs -> {
-                    double stored = 20.0;
-                    if (rs.next()) {
-                        stored = rs.getDouble("health");
-                    } else {
-                        plugin.db.updateSafe(
-                                "INSERT INTO life_data (uuid, health) VALUES (?, ?)",
-                                uuid.toString(), stored
-                        );
-                    }
-                    double newHealth = Math.max(2.0, stored - amount);
-
-                    if (stored <= 2.0) {
-                        plugin.getLogger().info(player.getName() + " is already at minimum health.");
-                        return null;
-                    }
-
-                    if (amount > stored - 2.0) {
-                        plugin.getLogger().info(player.getName() + " cannot lose that much health.");
-                        return null;
-                    }
-
-                    plugin.updateDb(uuid, newHealth);
-
-                    if (player != null) {
-                        scheduler.runGlobal(() -> player.setMaxHealth(newHealth));
-                    }
-
-                    return null;
-                },
-                uuid.toString()
-        );
+        double oldHealth = plugin.heartCache.remove(uuid);
+        double newHealth = Math.max(2.0, oldHealth - amount);
+        if (newHealth <= 2.0) {
+            plugin.getLogger().info(player.getName() + " is already at minimum health.");
+            return;
+        }
+        if (amount > newHealth - 2.0) {
+            plugin.getLogger().info(player.getName() + " cannot lose that much health.");
+            return;
+        }
+        if (player != null) {
+            scheduler.runGlobal(() -> player.setMaxHealth(newHealth));
+        }
+        plugin.updateDb(uuid, newHealth);
     }
 
     /**
