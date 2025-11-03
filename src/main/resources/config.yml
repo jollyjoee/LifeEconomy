@@ -1,0 +1,25 @@
+database: #use mysql to sync hearts across different servers on a proxy network
+  type: sqlite # or "mysql" use sqlite if you haven't set up a mysql server
+  # SQLite options
+  file: hearts.db
+  # MySQL options (used only if type = mysql)
+  host: localhost
+  port: 3306
+  database: life_economy
+  username: root
+  password: ""
+  useSSL: false
+  pool-size: 10
+
+cost: #1 heart = 2.0
+  minimum-health: 2.0 #Minimum player health, no death will cause health to go below this
+  random-death: 2.0 #Just deletes 1 heart
+  death-to-player: 2.0 #1 heart cost if they die to a player (gets transferred to killer)
+
+settings:
+  heal-on-kill: true
+  hearts-display: ACTION_BAR #type none if you don't want a hearts display. ACTION_BAR is the only supported display for now
+
+messages:
+  no-hearts-lost: "<red>You didn't lose any hearts.</red>"
+  no-hearts-gained: "<red>You didn't gain any hearts.</red>"

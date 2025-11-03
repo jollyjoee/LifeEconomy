@@ -1,0 +1,14 @@
+name: LifeEconomy
+version: '1.0'
+main: com.jolly.lifeEconomy.LifeEconomy
+api-version: '1.21'
+authors: [ Joly ]
+folia-supported: true
+commands:
+  life:
+    description: Life economy commands
+    usage: /life <give|take|set|get>
+    permission: life.admin
+permissions:
+  life.admin:
+    default: op
