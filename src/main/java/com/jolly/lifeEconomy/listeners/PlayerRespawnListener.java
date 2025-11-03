@@ -26,11 +26,11 @@ public class PlayerRespawnListener implements Listener {
             return;
         }
         plugin.db.querySafeAsync(
-                "SELECT hearts FROM life_data WHERE uuid = ?",
+                "SELECT health FROM life_data WHERE uuid = ?",
                 rs -> {
                     double hearts = 20.0;
                     if (rs.next()) {
-                        hearts = rs.getDouble("hearts");
+                        hearts = rs.getDouble("health");
                     } else plugin.updateDb(uuid, hearts);
                     final double finalHearts = hearts;
                     plugin.scheduler.runGlobal(() -> player.setMaxHealth(finalHearts));

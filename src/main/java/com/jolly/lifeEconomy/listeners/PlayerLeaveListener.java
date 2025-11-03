@@ -17,7 +17,7 @@ public class PlayerLeaveListener implements Listener {
     public void onPlayerLeave(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         double hearts = plugin.heartCache.remove(player.getUniqueId());
-        plugin.getLogger().info("[LifeEconomy] Saving hearts: " + hearts + " for " + player.getName());
+        plugin.getLogger().info("[LifeEconomy] Saving health: " + hearts + " for " + player.getName());
         plugin.updateDb(player.getUniqueId(), hearts);
     }
 }

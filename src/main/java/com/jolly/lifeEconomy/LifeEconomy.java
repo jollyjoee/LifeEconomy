@@ -90,7 +90,7 @@ public final class LifeEconomy extends JavaPlugin {
         db.updateSafe("""
             CREATE TABLE IF NOT EXISTS life_data (
                 uuid TEXT PRIMARY KEY,
-                hearts DOUBLE NOT NULL
+                health DOUBLE NOT NULL
             )
         """);
     }
@@ -98,10 +98,10 @@ public final class LifeEconomy extends JavaPlugin {
     public void updateDb(UUID uuid, double hearts) {
         heartCache.put(uuid, hearts);
         db.updateSafeAsync("""
-            INSERT INTO life_data (uuid, hearts)
+            INSERT INTO life_data (uuid, health)
             VALUES (?, ?)
             ON CONFLICT(uuid) DO UPDATE SET
-                hearts = excluded.hearts
+                health = excluded.health
         """, uuid.toString(), hearts);
     }
 
