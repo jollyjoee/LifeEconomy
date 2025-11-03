@@ -107,7 +107,6 @@ public class LifeEconomyAPI {
                                 uuid.toString(), stored
                         );
                     }
-
                     double newHealth = Math.max(2.0, stored - amount);
 
                     if (stored <= 2.0) {
@@ -133,6 +132,17 @@ public class LifeEconomyAPI {
     }
 
     /**
+     * Gets a player's stored health value from the cache.
+     * @param player The player whose health to fetch.
+     * @return A Double containing the player's health.
+     */
+
+    public Double getHealth(Player player) {
+        UUID uuid = player.getUniqueId();
+        return plugin.heartCache.get(uuid);
+    }
+
+    /**
      * Gets a player's stored health value from the database asynchronously.
      * <p>
      * Use {@code thenAccept()} to read the result.
@@ -146,6 +156,8 @@ public class LifeEconomyAPI {
      * @param player The player whose health to fetch.
      * @return A CompletableFuture containing the player's health.
      */
+
+    /*
     public CompletableFuture<Double> getHealth(Player player) {
         UUID uuid = player.getUniqueId();
 
@@ -165,7 +177,7 @@ public class LifeEconomyAPI {
                 },
                 uuid.toString()
         );
-    }
+    }*/
 
     /**
      * Sets a player's health and updates both cache and database.
