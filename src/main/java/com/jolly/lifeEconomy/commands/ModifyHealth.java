@@ -33,9 +33,7 @@ public class ModifyHealth implements CommandExecutor, TabCompleter {
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (sub.equals("get") && args.length >= 2) {
             Player target = Bukkit.getPlayer(args[1]);
-            api.getHealth(target).thenAccept(hearts ->
-                    sender.sendMessage("§a" + target.getName() + " has " + hearts/2 + " hearts.")
-            );
+            sender.sendMessage("§a" + target.getName() + " has " + api.getHealth(target)/2 + " hearts.");
             return true;
         }
         if (args.length < 3) {
