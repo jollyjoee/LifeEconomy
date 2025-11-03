@@ -2,10 +2,9 @@ package com.jolly.lifeEconomy;
 
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
+import com.jolly.lifeEconomy.CancelTask;
 
 import java.util.concurrent.TimeUnit;
 
@@ -100,14 +99,17 @@ public class Scheduler {
     // 🔹 Repeating Tasks
     // ======================================================
 
-    public Object runTimer(Runnable task, long delayTicks, long periodTicks) {
+    public CancelTask runTimer(Runnable task, long delayTicks, long periodTicks) {
         if (folia) {
-            return Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, t -> {
+            ScheduledTask t = Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, r -> {
                 if (!plugin.isEnabled()) return;
                 task.run();
             }, delayTicks, periodTicks);
+
+            return t::cancel;
         } else {
-            return Bukkit.getScheduler().runTaskTimer(plugin, task, delayTicks, periodTicks);
+            BukkitTask t = Bukkit.getScheduler().runTaskTimer(plugin, task, delayTicks, periodTicks);
+            return t::cancel;
         }
     }
 

@@ -12,14 +12,19 @@ database: #use mysql to sync hearts across different servers on a proxy network
   pool-size: 10
 
 cost: #1 heart = 2.0
-  minimum-health: 2.0 #Minimum player health, no death will cause health to go below this
-  random-death: 2.0 #Just deletes 1 heart
+  minimum-health: 2.0 #Minimum player health, no death will cause health to go below this (I suggest not changing this, 2.0 is 1 heart)
+  random-death: 2.0 #Just deletes 1 heart when a player dies from any other causes that's not a player.
   death-to-player: 2.0 #1 heart cost if they die to a player (gets transferred to killer)
 
-settings:
+settings: #hearts-display appear on damage
   heal-on-kill: true
   hearts-display: ACTION_BAR #type none if you don't want a hearts display. ACTION_BAR is the only supported display for now
+  display-timeout: 4 #Seconds before display disappears
 
 messages:
   no-hearts-lost: "<red>You didn't lose any hearts.</red>"
   no-hearts-gained: "<red>You didn't gain any hearts.</red>"
+  pay: "<gray>You gave <gold>{target}</gold><green> {amount} <red>health"
+  player-not-found: "<red>That player does not exist or is not online!"
+  pay-more-than-minimum: "<red>Cannot send if it results in you having less than {minimum} health!"
+  pay-more-than-health: "<red>You're trying to pay more than what you have!"

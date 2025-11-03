@@ -1,14 +1,21 @@
 name: LifeEconomy
-version: '1.6'
+version: '1.7'
 main: com.jolly.lifeEconomy.LifeEconomy
 api-version: '1.21'
-authors: [ Joly ]
+authors: [ Jolly ]
+depend: [ PlaceholderAPI ]
 folia-supported: true
 commands:
   life:
     description: Life economy commands
-    usage: /life <give|take|set|get>
+    usage: /life <give|take|set|get|reload>
     permission: life.admin
+  health:
+    description: Life economy commands
+    usage: /health pay <amount> <player>
+    permission: life.health
 permissions:
   life.admin:
+    default: op
+  life.health:
     default: op

@@ -27,13 +27,18 @@ public class ModifyHealth implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (args.length == 0) {
-            sender.sendMessage("§cUsage: /life <give | take | set | get>");
+            sender.sendMessage("§cUsage: /life <give | take | set | get | reload>");
             return true;
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (sub.equals("get") && args.length >= 2) {
             Player target = Bukkit.getPlayer(args[1]);
             sender.sendMessage("§a" + target.getName() + " has " + api.getHealth(target)/2 + " hearts.");
+            return true;
+        }
+        if (sub.equals("reload")) {
+            plugin.reloadConfig();
+            sender.sendActionBar(plugin.mm().deserialize("<gold>LifeEconomy has been reloaded!"));
             return true;
         }
         if (args.length < 3) {
@@ -70,7 +75,7 @@ public class ModifyHealth implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("give", "take", "set", "get")
+            return Arrays.asList("give", "take", "set", "get", "reload")
                     .stream()
                     .filter(s -> s.startsWith(args[0].toLowerCase()))
                     .toList();

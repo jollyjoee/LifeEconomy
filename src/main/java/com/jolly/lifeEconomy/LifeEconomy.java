@@ -1,17 +1,18 @@
 package com.jolly.lifeEconomy;
 
 import com.jolly.lifeEconomy.commands.ModifyHealth;
+import com.jolly.lifeEconomy.commands.PlayerCommands;
 import com.jolly.lifeEconomy.display.ActionBar;
-import com.jolly.lifeEconomy.listeners.PlayerDeathListener;
-import com.jolly.lifeEconomy.listeners.PlayerJoinListener;
-import com.jolly.lifeEconomy.listeners.PlayerLeaveListener;
-import com.jolly.lifeEconomy.listeners.PlayerRespawnListener;
+import com.jolly.lifeEconomy.listeners.*;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.units.qual.A;
 
@@ -28,6 +29,7 @@ public final class LifeEconomy extends JavaPlugin {
     private LifeEconomyAPI api;
     private ModifyHealth modifyHealth;
     private ActionBar actionBar;
+    private PlayerCommands playerCommands;
     public final Map<UUID, Double> heartCache = new ConcurrentHashMap<>();
     @Override
     public void onEnable() {
@@ -62,15 +64,38 @@ public final class LifeEconomy extends JavaPlugin {
         scheduler = new Scheduler(this);
         api = new LifeEconomyAPI(this, scheduler);
         modifyHealth = new ModifyHealth(this, api);
+        playerCommands = new PlayerCommands(this, api);
         actionBar = new ActionBar(this, scheduler);
         getServer().getPluginManager().registerEvents(new PlayerDeathListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerLeaveListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerRespawnListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerDamageListener(this, scheduler, actionBar), this);
         getCommand("life").setExecutor(modifyHealth);
         getCommand("life").setTabCompleter(modifyHealth);
-        if (config.getString("settings.hearts-display").equals("ACTION_BAR")) {
-            actionBar.start();
+        getCommand("health").setExecutor(playerCommands);
+        getCommand("health").setTabCompleter(playerCommands);
+        // ================================
+        // 🪄 PLACEHOLDERAPI HOOK
+        // ================================
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            scheduler.runLater(() -> {
+                new Placeholder(this, api).register();
+                getLogger().info("✅ Registered Serversentials placeholders with PlaceholderAPI!");
+            }, 20L);
+
+        } else {
+            Bukkit.getPluginManager().registerEvents(new Listener() {
+                @EventHandler
+                public void onPluginEnable(PluginEnableEvent event) {
+                    if (event.getPlugin().getName().equals("PlaceholderAPI")) {
+                        scheduler.runLater(() -> {
+                            new Placeholder(LifeEconomy.this, api).register();
+                            getLogger().info("✅ Registered Serversentials placeholders with PlaceholderAPI (delayed)!");
+                        }, 20L);
+                    }
+                }
+            }, this);
         }
     }
 
@@ -109,6 +134,10 @@ public final class LifeEconomy extends JavaPlugin {
             ON CONFLICT(uuid) DO UPDATE SET
                 health = excluded.health
         """, uuid.toString(), hearts);
+    }
+
+    public MiniMessage mm() {
+        return mm;
     }
 
 }
