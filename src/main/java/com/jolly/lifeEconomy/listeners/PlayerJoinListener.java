@@ -32,7 +32,9 @@ public class PlayerJoinListener implements Listener {
                     double hearts = 20.0;
                     if (rs.next()) {
                         hearts = rs.getDouble("health");
-                    } else plugin.updateDb(uuid, hearts);
+                    } else { //if player doesn't exist in DB
+                        plugin.updateDb(uuid, hearts);
+                    }
                     double finalHearts = hearts;
                     plugin.heartCache.put(uuid, finalHearts);
                     plugin.scheduler.runGlobal(() -> player.setMaxHealth(finalHearts));

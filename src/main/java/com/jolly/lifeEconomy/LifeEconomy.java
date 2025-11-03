@@ -58,9 +58,9 @@ public final class LifeEconomy extends JavaPlugin {
             getLogger().info("✅ Using SQLite database at " + sqliteFile.getAbsolutePath());
         }
         initTable();
-        api = new LifeEconomyAPI(this, scheduler);
         getLogger().info("LifeEconomy API loaded!");
         scheduler = new Scheduler(this);
+        api = new LifeEconomyAPI(this, scheduler);
         modifyHealth = new ModifyHealth(this, api);
         actionBar = new ActionBar(this, scheduler);
         getServer().getPluginManager().registerEvents(new PlayerDeathListener(this), this);

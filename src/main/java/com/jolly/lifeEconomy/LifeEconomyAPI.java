@@ -55,16 +55,18 @@ public class LifeEconomyAPI {
      * @param heal   If true, restores player to full health after change.
      */
     public void giveHealth(Player player, double amount, boolean heal) {
+        if (player == null) {
+            plugin.getLogger().info("Cannot do this for offline players!");
+            return;
+        }
         UUID uuid = player.getUniqueId();
         double oldHealth = plugin.heartCache.remove(uuid);
         double newHealth = oldHealth + amount;
         plugin.updateDb(uuid, newHealth);
-        if (player != null) {
-            scheduler.runGlobal(() -> {
-                player.setMaxHealth(newHealth);
-                if (heal) player.setHealth(player.getMaxHealth());
-            });
-        }
+        scheduler.runGlobal(() -> {
+            player.setMaxHealth(newHealth);
+            if (heal) player.setHealth(player.getMaxHealth());
+        });
     }
 
     /**
@@ -74,20 +76,24 @@ public class LifeEconomyAPI {
      * @param amount Health points to remove (2.0 = -1 heart).
      */
     public void takeHealth(Player player, double amount) {
-        UUID uuid = player.getUniqueId();
-        double oldHealth = plugin.heartCache.remove(uuid);
-        double newHealth = Math.max(2.0, oldHealth - amount);
-        if (newHealth <= 2.0) {
-            plugin.getLogger().info(player.getName() + " is already at minimum health.");
+        if (player == null) {
+            plugin.getLogger().info("Cannot do this for offline players!");
             return;
         }
-        if (amount > newHealth - 2.0) {
+        double minHealth = 2.0;
+        UUID uuid = player.getUniqueId();
+        double oldHealth = plugin.heartCache.get(uuid);
+        if (oldHealth - amount < minHealth) {
             plugin.getLogger().info(player.getName() + " cannot lose that much health.");
             return;
         }
-        if (player != null) {
-            scheduler.runGlobal(() -> player.setMaxHealth(newHealth));
+        double newHealth = Math.max(2.0, oldHealth - amount);
+        if (newHealth < 2.0) {
+            plugin.getLogger().info(player.getName() + " is already at minimum health.");
+            return;
         }
+        plugin.heartCache.remove(uuid);
+        scheduler.runGlobal(() -> player.setMaxHealth(newHealth));
         plugin.updateDb(uuid, newHealth);
     }
 
@@ -98,6 +104,10 @@ public class LifeEconomyAPI {
      */
 
     public Double getHealth(Player player) {
+        if (player == null) {
+            plugin.getLogger().info("Cannot do this for offline players!");
+            return null;
+        }
         UUID uuid = player.getUniqueId();
         return plugin.heartCache.get(uuid);
     }
@@ -109,11 +119,12 @@ public class LifeEconomyAPI {
      * @param amount Health value to set (2.0 = 1 heart, 20.0 = default).
      */
     public void setHealth(Player player, double amount) {
+        if (player == null) {
+            plugin.getLogger().info("Cannot do this for offline players!");
+            return;
+        }
         UUID uuid = player.getUniqueId();
         plugin.updateDb(uuid, amount);
-
-        if (player != null) {
-            player.setMaxHealth(amount);
-        }
+        player.setMaxHealth(amount);
     }
 }

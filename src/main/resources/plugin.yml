@@ -1,5 +1,5 @@
 name: LifeEconomy
-version: '1.5'
+version: '1.6'
 main: com.jolly.lifeEconomy.LifeEconomy
 api-version: '1.21'
 authors: [ Joly ]
