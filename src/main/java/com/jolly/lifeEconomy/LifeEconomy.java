@@ -60,6 +60,7 @@ public final class LifeEconomy extends JavaPlugin {
             getLogger().info("✅ Using SQLite database at " + sqliteFile.getAbsolutePath());
         }
         initTable();
+        Metrics metrics = new Metrics(this, 27849);
         getLogger().info("LifeEconomy API loaded!");
         scheduler = new Scheduler(this);
         api = new LifeEconomyAPI(this, scheduler);
